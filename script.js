@@ -66,7 +66,6 @@ const formValidator = (form, fieldsConfig, onValidateSuccess, onValidationError)
     const listenFormSubmit = () => {
       form.addEventListener('submit', e => {
         e.preventDefault();
-        console.log('submit');
         const errors = [];
         const values = {};
         const validationResult = validateOnSubmit();
@@ -79,7 +78,6 @@ const formValidator = (form, fieldsConfig, onValidateSuccess, onValidationError)
         } else {
           onValidationError(errors);
         }
-        console.log(values);
       });
     }
     listenFormSubmit();
@@ -167,17 +165,6 @@ const formValidator = (form, fieldsConfig, onValidateSuccess, onValidationError)
   
   const formManager = formValidator(form, fieldsConfig, onFormSubmitSuccess, onFormSubmitError);
   
-
-
-const  fetchUser = async (link) => {
-  try{
-      const response = fetch(link);
-      const userData = (await response).json()
-      return userData
-  }catch(e){
-      console.error(e)
-  }
-}
   const addUserData = (users,table) => {
     users.forEach((user) => {
         let tableRow = document.createElement(`tr`)
@@ -206,16 +193,18 @@ const  fetchUser = async (link) => {
     // ეიდტის ღილაკზე უნდა გამოიძახოთ getUser ფუნქცია და რომ დააბრუნებს ერთი მომხმარებლის დატას (ობიექტს და არა მასივს)
     // ეს დატა უნდა შეივსოს ფორმში formManager აქვს ახალი შესაძლებლობა formManager.setFields(userObject)
     // ეს ფუნქცია გამოიძახე და გადაეცი user-ის დატა
-    const data = await fetchUser(`http://api.kesho.me/v1/user-test/index`)   
+
     const tableRows = document.querySelectorAll(`tr`)
-    data.forEach((user,index) => {
+    const tableArray = Array.from(tableRows)
+    tableArray.shift()
+    tableArray.forEach((array,index) => {
       const editBtn = document.createElement(`button`)
       const dltBtn = document.createElement(`button`)
-      const id = user.id
+      const id = array.className.replace(/\D/g,'');
       editBtn.innerText = `Edit`
       dltBtn.innerText = `Delete`
       editBtn.setAttribute(`data-user-id`, `${id}`)
-      editBtn.addEventListener(`click`, () => editUser(user))
+      editBtn.addEventListener(`click`, () => editUser(id))
       dltBtn.setAttribute(`data-user-id`, `${id}`)
       dltBtn.addEventListener(`click`, () => deleteUser(id))
       tableRows[index+1].appendChild(editBtn)
@@ -223,8 +212,9 @@ const  fetchUser = async (link) => {
     })
   }
   
-  async function editUser(user){
+  async function editUser(userID){
     modalBody.style.display = `initial`
+    const user = await getUser(userID)
     formManager.setFields(user)
   }
   async function getUsers(){
@@ -277,7 +267,7 @@ const  fetchUser = async (link) => {
         body: JSON.stringify(userObject),
         headers: {'Content-Type': 'application/json'}
       })
-      await response.json();
+      .then(response => response.json)     
       clearTable()
       getUsers()
     }catch (error){
@@ -289,10 +279,10 @@ const  fetchUser = async (link) => {
     // DELETE `http://api.kesho.me/v1/user-test/delete?id=${userId}`
     try{
       const response = await fetch(`http://api.kesho.me/v1/user-test/delete?id=${userId}`,{
-        method: 'post',
+        method: 'DELETE',
         // headers: {'Content-Type': 'application/json'}
       })
-      await response.json();
+      .then(response => response.json)
       clearTable()
       getUsers()
     }catch (error){
