@@ -49,3 +49,7 @@ th{
     cursor: pointer;
     border: 1px solid black;
 }
+
+#error-body{
+    color: crimson;
+}

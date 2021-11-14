@@ -89,9 +89,16 @@ const formValidator = (form, fieldsConfig, onValidateSuccess, onValidationError)
         fieldElement.value = dataObject.hasOwnProperty(fieldConfig.name) ? dataObject[fieldConfig.name]: '';
       })
     }
+    function resetFields(){
+      fieldsConfig.forEach(config => {
+        const fieldElement = form.querySelector(`[name="${config.name}"]`);
+        fieldElement.value = ``
+        })
+    }
   
     return {
       setFields,
+      resetFields
     }
   }
   
@@ -158,13 +165,15 @@ const formValidator = (form, fieldsConfig, onValidateSuccess, onValidationError)
     }else {
       createUser(fields);
     }
+    modal(userModalId).close()
   }
   const onFormSubmitError = (fields) => {
     console.log('Error', fields);
   }
   
-  const formManager = formValidator(form, fieldsConfig, onFormSubmitSuccess, onFormSubmitError);
   
+  const formManager = formValidator(form, fieldsConfig, onFormSubmitSuccess, onFormSubmitError);
+
   const addUserData = (users,table) => {
     users.forEach((user) => {
         let tableRow = document.createElement(`tr`)
@@ -178,8 +187,10 @@ const formValidator = (form, fieldsConfig, onValidateSuccess, onValidationError)
         table.appendChild(tableRow)
     })
 }
-function modal() {
-  const modalWrapper = document.querySelector(`#user-form-modal`);
+const userModalId = `#user-form-modal`;
+const errorModalId = `#error-modal-id`;
+function modal(modalId) {
+  const modalWrapper = document.querySelector(`${modalId}`);
   const modalContent = modalWrapper.querySelector('.modal-content');
   const closeBtn = modalContent.querySelector('.close');
 
@@ -195,18 +206,14 @@ function modal() {
 
   closeBtn.addEventListener('click', e => {
     modalWrapper.style.display = 'none';
-    fieldsConfig.forEach(config => {
-      const fieldElement = form.querySelector(`[name="${config.name}"]`);
-      fieldElement.value = ``
-      })
-  });//აქ დახურვისას რო გაასუფთაოს ფორმა ეგ დავამატე
+  });
 
   function close(){
     modalWrapper.style.display = 'none';
   }
 
   return {
-    close
+    close,
   }
 }
   function renderUsers(users){
@@ -244,7 +251,8 @@ function modal() {
   }
   
   async function editUser(userID){
-    modal()
+    formManager.resetFields()
+    modal(userModalId)
     const user = await getUser(userID)
     formManager.setFields(user)
   }
@@ -289,6 +297,7 @@ function modal() {
       getUsers(); // შენახვის ედიტირების და წაშლის შემდეგ ახლიდან წამოიღეთ უსერები
     }catch (e){
       console.log('Error - ', e);
+      displayError(e)
     }
   }
   async function updateUser(userObject) {
@@ -302,7 +311,7 @@ function modal() {
       clearTable()
       getUsers()
     }catch (error){
-      console.error(error)
+      displayError(error)
     }
     
   }
@@ -318,18 +327,29 @@ function modal() {
       getUsers()
     }catch (error){
       console.error(error)
+      displayError(error)
+
     }
   }
   const modalBody = document.querySelector(`.modal`)
   const newUsersBtn = document.querySelector('.new-user');
   const closeButton = document.querySelector(`.modal-header`)
+  
   newUsersBtn.addEventListener('click', e => {
-    modal()
+    formManager.resetFields()
+    modal(userModalId)
   })
+
   const clearTable = () =>{
       const userTables =Array.from(document.querySelectorAll(`tr`))
       userTables.shift();
       userTables.forEach(userTable => {
         userTable.remove()
       })
+  }
+
+  function displayError(error){
+    const errorBody = document.querySelector(`#error-body`)
+    errorBody.innerText = `${error}`
+    modal(errorModalId)
   }
