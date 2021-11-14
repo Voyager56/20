@@ -178,6 +178,37 @@ const formValidator = (form, fieldsConfig, onValidateSuccess, onValidationError)
         table.appendChild(tableRow)
     })
 }
+function modal() {
+  const modalWrapper = document.querySelector(`#user-form-modal`);
+  const modalContent = modalWrapper.querySelector('.modal-content');
+  const closeBtn = modalContent.querySelector('.close');
+
+  modalWrapper.style.display = 'block';
+
+  modalContent.addEventListener('click', e => {
+    e.stopPropagation();
+  });
+
+  modalWrapper.addEventListener('click', e => {
+    modalWrapper.style.display = 'none';
+  });
+
+  closeBtn.addEventListener('click', e => {
+    modalWrapper.style.display = 'none';
+    fieldsConfig.forEach(config => {
+      const fieldElement = form.querySelector(`[name="${config.name}"]`);
+      fieldElement.value = ``
+      })
+  });//აქ დახურვისას რო გაასუფთაოს ფორმა ეგ დავამატე
+
+  function close(){
+    modalWrapper.style.display = 'none';
+  }
+
+  return {
+    close
+  }
+}
   function renderUsers(users){
     const table = document.querySelector(`.user-table`)
     addUserData(users,table)
@@ -213,7 +244,7 @@ const formValidator = (form, fieldsConfig, onValidateSuccess, onValidationError)
   }
   
   async function editUser(userID){
-    modalBody.style.display = `initial`
+    modal()
     const user = await getUser(userID)
     formManager.setFields(user)
   }
@@ -293,16 +324,8 @@ const formValidator = (form, fieldsConfig, onValidateSuccess, onValidationError)
   const newUsersBtn = document.querySelector('.new-user');
   const closeButton = document.querySelector(`.modal-header`)
   newUsersBtn.addEventListener('click', e => {
-    modalBody.style.display = `initial`
+    modal()
   })
-  closeButton.addEventListener(`click`, () => {
-    modalBody.style.display = `none`
-    fieldsConfig.forEach(config => {
-    const fieldElement = form.querySelector(`[name="${config.name}"]`);
-    fieldElement.value = ``
-    })
-  })
-
   const clearTable = () =>{
       const userTables =Array.from(document.querySelectorAll(`tr`))
       userTables.shift();
